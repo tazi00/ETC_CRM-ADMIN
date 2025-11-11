@@ -125,7 +125,7 @@ export function DashboardSidebar({
   async function userlogout() {
     try {
       // Call backend to clear the HttpOnly refresh cookie
-      await apiClient.get("/auth/logout");
+      await apiClient.get("/api/auth/logout");
 
       // Wipe client-side junk
       localStorage.clear();

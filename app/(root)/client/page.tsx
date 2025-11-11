@@ -1,10 +1,9 @@
 // app/(dashboard)/overview/page.tsx
 "use client";
 
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-
 import DashboardPageLayout from "@/components/dashboard/layout";
 import BracketsIcon from "@/components/icons/brackets";
 import { Button } from "@/components/ui/button";
@@ -46,13 +45,18 @@ type Pagination = {
 type ApiSuccess = {
   message: string;
   status: "SUCCESS";
-  data: {
-    clients: Client[];
-    pagination: Pagination;
-  };
+  data: { clients: Client[]; pagination: Pagination };
 };
 
 export default function DashboardOverview() {
+  return (
+    <Suspense fallback={<TableSkeleton />}>
+      <DashboardOverviewInner />
+    </Suspense>
+  );
+}
+
+function DashboardOverviewInner() {
   const sp = useSearchParams();
   const router = useRouter();
 
@@ -75,11 +79,12 @@ export default function DashboardOverview() {
     setLoading(true);
     setError(null);
     try {
+      // If your apiClient BASE = http://localhost:8850/api
+      // then call "/client/all" (NOT "/api/client/all")
       const res = (await apiClient.post("/api/client/all", {
         page,
         limit,
       })) as ApiSuccess;
-
       setClients(res.data.clients);
       setPagination(res.data.pagination);
     } catch (e: any) {
@@ -133,7 +138,7 @@ export default function DashboardOverview() {
         </Link>
       </div>
 
-      {/* Controls Section */}
+      {/* Controls */}
       <div className="py-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-border">
         <div className="flex items-center gap-3">
           <select
@@ -165,10 +170,10 @@ export default function DashboardOverview() {
         )}
       </div>
 
-      {/* Loading State */}
+      {/* Loading */}
       {loading && <TableSkeleton />}
 
-      {/* Error State */}
+      {/* Error */}
       {error && !loading && (
         <div className="rounded-lg border border-destructive bg-destructive/10 p-6 text-destructive font-mono text-sm">
           <div className="flex items-center gap-3 mb-3">
@@ -187,7 +192,7 @@ export default function DashboardOverview() {
         </div>
       )}
 
-      {/* Empty State */}
+      {/* Empty */}
       {!loading && !error && clients.length === 0 && (
         <div className="rounded-lg border border-border bg-pop p-8 text-center">
           <div className="text-muted-foreground font-mono space-y-3">
@@ -205,7 +210,7 @@ export default function DashboardOverview() {
         </div>
       )}
 
-      {/* Clients Table */}
+      {/* Table */}
       {!loading && !error && clients.length > 0 && (
         <>
           <div className="overflow-x-auto rounded-xl border border-border">
@@ -318,7 +323,7 @@ export default function DashboardOverview() {
                     changePage(Math.max(1, pagination.currentPage - 1))
                   }
                   disabled={!pagination.hasPrevPage}
-                  className="px-4 py-2 bg-pop text-foreground font-mono text-sm rounded-lg border border-border hover:bg-pop/50 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 bg-pop text-foreground font-mono text-sm rounded-lg border border-border hover:bg-pop/50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   PREV
                 </button>
@@ -355,7 +360,7 @@ export default function DashboardOverview() {
                     )
                   }
                   disabled={!pagination.hasNextPage}
-                  className="px-4 py-2 bg-pop text-foreground font-mono text-sm rounded-lg border border-border hover:bg-pop/50 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 bg-pop text-foreground font-mono text-sm rounded-lg border border-border hover:bg-pop/50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   NEXT
                 </button>
@@ -373,12 +378,11 @@ function StatusBadge({ status }: { status: string }) {
     new: "bg-warning text-warning-foreground",
     active: "bg-success text-success-foreground",
     closed: "bg-muted text-muted-foreground",
-  };
+  } as const;
 
   const color =
     statusColors[status as keyof typeof statusColors] ||
     "bg-muted text-muted-foreground";
-
   return (
     <span
       className={`px-3 py-1.5 rounded-lg text-xs font-mono font-medium ${color}`}
@@ -392,14 +396,11 @@ function TableSkeleton() {
   return (
     <div className="overflow-hidden rounded-xl border border-border">
       <div className="animate-pulse">
-        {/* Table Header Skeleton */}
         <div className="flex items-center gap-4 px-6 py-4 border-b border-border bg-pop">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="h-4 bg-input rounded flex-1" />
           ))}
         </div>
-
-        {/* Table Rows Skeleton */}
         {Array.from({ length: 6 }).map((_, i) => (
           <div
             key={i}

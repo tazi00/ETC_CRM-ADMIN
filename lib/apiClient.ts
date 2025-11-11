@@ -45,7 +45,7 @@ export const apiClient = {
 };
 
 async function request(path: string, config: RequestInit) {
-  const res = await fetch(`${"http://localhost:8850"}${path}`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${path}`, {
     ...config,
     credentials: "include", // baked in forever
   });

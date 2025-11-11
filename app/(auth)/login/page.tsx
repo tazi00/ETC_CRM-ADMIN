@@ -15,7 +15,7 @@ export default function LoginPage() {
     try {
       console.log("Login attempt:", { email, password });
 
-      const res = await apiClient.post("/auth/login", {
+      const res = await apiClient.post("/api/auth/login", {
         email,
         password,
       });

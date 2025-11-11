@@ -1,13 +1,27 @@
+// app/addons/edit/page.tsx
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { apiClient } from "@/lib/apiClient";
 import Link from "next/link";
 
 export default function EditAddonPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-6 text-sm opacity-70">Loading edit form…</div>
+      }
+    >
+      <EditAddonForm />
+    </Suspense>
+  );
+}
+
+export function EditAddonForm() {
   const router = useRouter();
-  const sp = useSearchParams();
+  const sp = useSearchParams(); // now safely inside Suspense
 
   const id = sp.get("id") || "";
   const initialTitle = sp.get("title") || "";
@@ -21,6 +35,7 @@ export default function EditAddonPage() {
   const [status, setStatus] = useState(initialStatus);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -35,7 +50,6 @@ export default function EditAddonPage() {
 
     try {
       setSaving(true);
-
       await apiClient.patch(`/api/addons/edit`, {
         addOnId: id,
         title,
@@ -43,11 +57,10 @@ export default function EditAddonPage() {
         value: valueNum,
         status,
       });
-
-      // Show success state briefly before redirect
+      setSaved(true);
       setTimeout(() => {
         router.replace("/addons");
-      }, 1000);
+      }, 800);
     } catch (err: any) {
       setError(err.message || "UPDATE_FAILED");
     } finally {
@@ -64,7 +77,6 @@ export default function EditAddonPage() {
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-2xl mx-auto">
-        {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="space-y-2">
             <h1 className="font-display text-3xl md:text-4xl text-foreground">
@@ -83,9 +95,7 @@ export default function EditAddonPage() {
           </Link>
         </div>
 
-        {/* Form Container */}
         <div className="bg-card border border-border rounded-xl p-6">
-          {/* Addon ID Display */}
           <div className="mb-6 p-3 bg-input rounded-lg border border-border">
             <div className="text-xs font-mono text-muted-foreground mb-1">
               ADDON_ID
@@ -96,7 +106,6 @@ export default function EditAddonPage() {
           </div>
 
           <form onSubmit={submit} className="space-y-6">
-            {/* Title Field */}
             <div className="space-y-3">
               <label className="block text-foreground font-mono text-sm font-medium">
                 ADDON_TITLE
@@ -110,7 +119,6 @@ export default function EditAddonPage() {
               />
             </div>
 
-            {/* Description Field */}
             <div className="space-y-3">
               <label className="block text-foreground font-mono text-sm font-medium">
                 ADDON_DESCRIPTION
@@ -124,7 +132,6 @@ export default function EditAddonPage() {
               />
             </div>
 
-            {/* Value Field */}
             <div className="space-y-3">
               <label className="block text-foreground font-mono text-sm font-medium">
                 ADDON_VALUE
@@ -146,7 +153,6 @@ export default function EditAddonPage() {
               </div>
             </div>
 
-            {/* Status Field */}
             <div className="space-y-3">
               <label className="block text-foreground font-mono text-sm font-medium">
                 STATUS
@@ -172,7 +178,6 @@ export default function EditAddonPage() {
               </select>
             </div>
 
-            {/* Status Indicators */}
             <div className="flex items-center gap-4 py-4 border-y border-border">
               <div className="flex items-center gap-2">
                 <div
@@ -183,7 +188,7 @@ export default function EditAddonPage() {
                       ? "bg-success"
                       : "bg-muted-foreground"
                   }`}
-                ></div>
+                />
                 <span className="text-xs font-mono text-muted-foreground">
                   {saving
                     ? "SAVING_CHANGES..."
@@ -192,71 +197,42 @@ export default function EditAddonPage() {
                     : "NO_CHANGES"}
                 </span>
               </div>
-              <div className="w-px h-4 bg-border"></div>
+              <div className="w-px h-4 bg-border" />
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-ring rounded-full"></div>
+                <div className="w-2 h-2 bg-ring rounded-full" />
                 <span className="text-xs font-mono text-muted-foreground">
                   ENCRYPTED_CONNECTION
                 </span>
               </div>
             </div>
 
-            {/* Error Message */}
             {error && (
               <div className="rounded-lg border border-destructive bg-destructive/10 p-4 text-destructive font-mono text-sm">
                 <div className="flex items-center gap-2 mb-1">
-                  <div className="w-1.5 h-1.5 bg-destructive rounded-full"></div>
+                  <div className="w-1.5 h-1.5 bg-destructive rounded-full" />
                   <span>UPDATE_ERROR</span>
                 </div>
                 {error}
               </div>
             )}
 
-            {/* Success State */}
-            {saving && !error && (
+            {saved && !error && (
               <div className="rounded-lg border border-success bg-success/10 p-4 text-success font-mono text-sm">
                 <div className="flex items-center gap-2 mb-1">
-                  <div className="w-1.5 h-1.5 bg-success rounded-full animate-pulse"></div>
+                  <div className="w-1.5 h-1.5 bg-success rounded-full animate-pulse" />
                   <span>UPDATE_SUCCESSFUL</span>
                 </div>
                 REDIRECTING_TO_ADDONS...
               </div>
             )}
 
-            {/* Action Buttons */}
             <div className="flex items-center gap-4 pt-4">
               <button
                 type="submit"
                 disabled={saving || !hasChanges}
-                className="px-6 py-3 bg-primary text-primary-foreground font-mono text-sm rounded-lg border border-border hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-card transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="px-6 py-3 bg-primary text-primary-foreground font-mono text-sm rounded-lg border border-border hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-card transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {saving ? (
-                  <>
-                    <svg
-                      className="animate-spin h-4 w-4"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    UPDATING...
-                  </>
-                ) : (
-                  "UPDATE_ADDON"
-                )}
+                {saving ? "UPDATING..." : "UPDATE_ADDON"}
               </button>
 
               <button
@@ -271,41 +247,25 @@ export default function EditAddonPage() {
           </form>
         </div>
 
-        {/* Quick Stats */}
         <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-pop border border-border rounded-lg p-4 text-center">
-            <div className="text-2xl font-mono text-foreground font-semibold truncate">
-              {initialTitle || "N/A"}
-            </div>
-            <div className="text-xs text-muted-foreground font-mono mt-1">
-              ORIGINAL_TITLE
-            </div>
-          </div>
-          <div className="bg-pop border border-border rounded-lg p-4 text-center">
-            <div className="text-2xl font-mono text-foreground font-semibold">
-              ${initialValue || "0"}
-            </div>
-            <div className="text-xs text-muted-foreground font-mono mt-1">
-              ORIGINAL_VALUE
-            </div>
-          </div>
-          <div className="bg-pop border border-border rounded-lg p-4 text-center">
-            <div className="text-2xl font-mono text-foreground font-semibold truncate">
-              {initialStatus || "N/A"}
-            </div>
-            <div className="text-xs text-muted-foreground font-mono mt-1">
-              CURRENT_STATUS
-            </div>
-          </div>
-          <div className="bg-pop border border-border rounded-lg p-4 text-center">
-            <div className="text-2xl font-mono text-foreground font-semibold">
-              {hasChanges ? "YES" : "NO"}
-            </div>
-            <div className="text-xs text-muted-foreground font-mono mt-1">
-              PENDING_CHANGES
-            </div>
-          </div>
+          <StatCard label="ORIGINAL_TITLE" value={initialTitle || "N/A"} />
+          <StatCard label="ORIGINAL_VALUE" value={`$${initialValue || "0"}`} />
+          <StatCard label="CURRENT_STATUS" value={initialStatus || "N/A"} />
+          <StatCard label="PENDING_CHANGES" value={hasChanges ? "YES" : "NO"} />
         </div>
+      </div>
+    </div>
+  );
+}
+
+function StatCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="bg-pop border border-border rounded-lg p-4 text-center">
+      <div className="text-2xl font-mono text-foreground font-semibold truncate">
+        {value}
+      </div>
+      <div className="text-xs text-muted-foreground font-mono mt-1">
+        {label}
       </div>
     </div>
   );

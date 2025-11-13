@@ -83,18 +83,18 @@ const data: {
           icon: ProcessorIcon,
           isActive: false,
         },
-        // {
-        //   title: "Security",
-        //   url: "/security",
-        //   icon: CuteRobotIcon,
-        //   isActive: false,
-        // },
-        // {
-        //   title: "Communication",
-        //   url: "/communication",
-        //   icon: EmailIcon,
-        //   isActive: false,
-        // },
+        {
+          title: "Campaigns",
+          url: "/campaigns",
+          icon: CuteRobotIcon,
+          isActive: false,
+        },
+        {
+          title: "Users",
+          url: "/users",
+          icon: EmailIcon,
+          isActive: false,
+        },
         // {
         //   title: "Admin Settings",
         //   url: "/admin",
